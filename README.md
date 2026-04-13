@@ -1,13 +1,13 @@
 # Reel Trouble 🎮
 
-Built this as a small experiment to make learning a bit addictive
+Built this as a small experiment to make SQL learning a bit addictive
 
 ## Idea
 Students lose focus fast. So tried adding:
 - quick feedback
 - scoring system
 - game feel
-
+ 
 Basically a small dopamine loop to keep them engaged.
 
 ## What it does
