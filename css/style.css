@@ -78,15 +78,28 @@ body {
   gap: 0.75rem 1rem; min-width: 0;
 }
 .top-bar-copy {
-  display: flex; align-items: baseline; gap: 0.9rem; flex-wrap: wrap;
+  display: flex; align-items: center; min-width: 0;
+}
+.top-bar-breadcrumb {
+  display: flex; align-items: center; gap: 0.45rem; flex-wrap: wrap;
   min-width: 0;
 }
-.top-bar-head .case-label {
+.breadcrumb-home,
+.breadcrumb-current {
   font-family: var(--font-display); font-weight: 700; font-size: 1rem;
+}
+.breadcrumb-home {
+  border: none; background: none; padding: 0;
+  color: var(--text-secondary); cursor: pointer;
+}
+.breadcrumb-home:hover {
+  color: var(--primary);
+}
+.breadcrumb-current {
   color: var(--primary-dark);
 }
-.top-bar-head .case-subtitle {
-  font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;
+.breadcrumb-separator {
+  color: var(--text-secondary); font-size: 0.85rem; font-weight: 600;
 }
 .top-bar-badges {
   display: flex; align-items: center; justify-content: flex-end;
@@ -614,17 +627,16 @@ body {
   }
 
   .top-bar-copy {
-    flex-direction: column;
     align-items: flex-start;
-    gap: 0.15rem;
   }
 
-  .top-bar-head .case-label {
-    font-size: 1.2rem;
+  .top-bar-breadcrumb {
+    gap: 0.35rem;
   }
 
-  .top-bar-head .case-subtitle {
-    font-size: 0.82rem;
+  .breadcrumb-home,
+  .breadcrumb-current {
+    font-size: 1.1rem;
   }
 
   .top-bar-progress {
@@ -633,13 +645,12 @@ body {
 
   .top-bar-actions {
     order: 2;
-    display: grid;
-    grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.95fr);
+    display: flex;
+    justify-content: flex-start;
   }
 
   .top-bar-actions .btn {
-    width: 100%;
-    justify-content: center;
+    width: auto;
   }
 
   .case-brief,
@@ -752,8 +763,9 @@ body {
     justify-content: flex-start;
   }
 
-  .top-bar-head .case-label {
-    font-size: 1.1rem;
+  .breadcrumb-home,
+  .breadcrumb-current {
+    font-size: 1rem;
   }
 
   .xp-bar-track {
@@ -770,10 +782,6 @@ body {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.5rem;
-  }
-
-  .top-bar-actions {
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
   }
 
   .top-bar-actions .btn {

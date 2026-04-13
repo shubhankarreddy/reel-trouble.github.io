@@ -319,13 +319,19 @@ function TopBar({ caseData, progress, onHome, onToggleSchema }) {
   const nextRankXP = getNextRankXP(progress.totalXP);
   const prevRankXP = RANKS.reduce((acc, r) => progress.totalXP >= r.threshold ? r.threshold : acc, 0);
   const pct = nextRankXP > prevRankXP ? ((progress.totalXP - prevRankXP) / (nextRankXP - prevRankXP)) * 100 : 100;
-  const homeLabel = caseData ? `Home / Case ${caseData.id}` : 'Home';
 
   return React.createElement('div', { className: 'top-bar' },
     React.createElement('div', { className: 'top-bar-head' },
       React.createElement('div', { className: 'top-bar-copy' },
-        React.createElement('span', { className: 'case-label' }, caseData ? `Case ${caseData.id}: ${caseData.title}` : 'Reel Trouble'),
-        caseData && React.createElement('span', { className: 'case-subtitle' }, caseData.subtitle)
+        React.createElement('div', { className: 'top-bar-breadcrumb' },
+          React.createElement('button', {
+            type: 'button',
+            className: 'breadcrumb-home',
+            onClick: onHome
+          }, 'Home'),
+          caseData && React.createElement('span', { className: 'breadcrumb-separator' }, '/'),
+          caseData && React.createElement('span', { className: 'breadcrumb-current' }, `Case ${caseData.id}`)
+        )
       ),
       React.createElement('div', { className: 'top-bar-badges' },
         React.createElement('span', { className: 'rank-badge' }, rank),
@@ -339,11 +345,6 @@ function TopBar({ caseData, progress, onHome, onToggleSchema }) {
       )
     ),
     React.createElement('div', { className: 'top-bar-actions' },
-      React.createElement('button', {
-        type: 'button',
-        className: 'btn btn-top-bar btn-top-bar-secondary',
-        onClick: onHome
-      }, homeLabel),
       React.createElement('button', {
         type: 'button',
         className: 'btn btn-top-bar',
