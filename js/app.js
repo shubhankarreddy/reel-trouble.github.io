@@ -314,7 +314,7 @@ function LoadingScreen({ progress }) {
   );
 }
 
-function TopBar({ caseData, progress }) {
+function TopBar({ caseData, progress, onHome, onToggleSchema }) {
   const rank = getRank(progress.totalXP);
   const nextRankXP = getNextRankXP(progress.totalXP);
   const prevRankXP = RANKS.reduce((acc, r) => progress.totalXP >= r.threshold ? r.threshold : acc, 0);
@@ -322,8 +322,10 @@ function TopBar({ caseData, progress }) {
 
   return React.createElement('div', { className: 'top-bar' },
     React.createElement('div', { className: 'top-bar-left' },
-      React.createElement('span', { className: 'case-label' }, caseData ? `Case ${caseData.id}: ${caseData.title}` : 'Reel Trouble'),
-      caseData && React.createElement('span', { className: 'case-subtitle' }, caseData.subtitle)
+      React.createElement('div', { className: 'top-bar-copy' },
+        React.createElement('span', { className: 'case-label' }, caseData ? `Case ${caseData.id}: ${caseData.title}` : 'Reel Trouble'),
+        caseData && React.createElement('span', { className: 'case-subtitle' }, caseData.subtitle)
+      )
     ),
     React.createElement('div', { className: 'top-bar-center' },
       React.createElement('div', { className: 'xp-bar-container' },
@@ -334,6 +336,18 @@ function TopBar({ caseData, progress }) {
       )
     ),
     React.createElement('div', { className: 'top-bar-right' },
+      React.createElement('div', { className: 'top-bar-actions' },
+        React.createElement('button', {
+          type: 'button',
+          className: 'btn btn-top-bar btn-top-bar-secondary',
+          onClick: onHome
+        }, 'Home'),
+        React.createElement('button', {
+          type: 'button',
+          className: 'btn btn-top-bar',
+          onClick: onToggleSchema
+        }, 'Schema')
+      ),
       React.createElement('span', { className: 'rank-badge' }, rank),
       progress.streak >= 3 && React.createElement('span', { className: 'streak-badge' }, `${progress.streak} streak`)
     )
@@ -439,20 +453,29 @@ function SchemaPanel({ onClose }) {
 
   return React.createElement('div', { className: 'schema-overlay', onClick: onClose },
     React.createElement('div', { className: 'schema-panel', onClick: e => e.stopPropagation() },
-      React.createElement('h2', null, 'Schema Reference'),
-      window.SCHEMA.map(table =>
-        React.createElement('div', { key: table.name, className: 'schema-table-block' },
-          React.createElement('div', { className: 'schema-table-name', onClick: () => toggle(table.name) },
-            React.createElement('span', null, expanded[table.name] ? '\u25BC' : '\u25B6'),
-            table.name
-          ),
-          expanded[table.name] && React.createElement('div', { className: 'schema-columns fade-in' },
-            table.columns.map(col =>
-              React.createElement('div', { key: col.name, className: 'schema-col' },
-                React.createElement('span', { className: 'col-name' }, col.name),
-                React.createElement('span', { className: 'col-type' }, col.type),
-                col.pk && React.createElement('span', { className: 'col-pk' }, 'PK'),
-                col.fk && React.createElement('span', { className: 'col-fk' }, `\u2192 ${col.fk}`)
+      React.createElement('div', { className: 'schema-header' },
+        React.createElement('h2', null, 'Schema Reference'),
+        React.createElement('button', {
+          type: 'button',
+          className: 'schema-close-btn',
+          onClick: onClose
+        }, 'Close')
+      ),
+      React.createElement('div', { className: 'schema-content' },
+        window.SCHEMA.map(table =>
+          React.createElement('div', { key: table.name, className: 'schema-table-block' },
+            React.createElement('div', { className: 'schema-table-name', onClick: () => toggle(table.name) },
+              React.createElement('span', null, expanded[table.name] ? '\u25BC' : '\u25B6'),
+              table.name
+            ),
+            expanded[table.name] && React.createElement('div', { className: 'schema-columns fade-in' },
+              table.columns.map(col =>
+                React.createElement('div', { key: col.name, className: 'schema-col' },
+                  React.createElement('span', { className: 'col-name' }, col.name),
+                  React.createElement('span', { className: 'col-type' }, col.type),
+                  col.pk && React.createElement('span', { className: 'col-pk' }, 'PK'),
+                  col.fk && React.createElement('span', { className: 'col-fk' }, `\u2192 ${col.fk}`)
+                )
               )
             )
           )
@@ -462,7 +485,7 @@ function SchemaPanel({ onClose }) {
   );
 }
 
-function CaseIntro({ caseData, onStart }) {
+function CaseIntro({ caseData, onStart, onBack }) {
   return React.createElement('div', { className: 'overlay-screen' },
     React.createElement('div', { className: 'overlay-card fade-in' },
       React.createElement('div', { className: 'case-num' }, `Case ${caseData.id} of 7`),
@@ -472,12 +495,15 @@ function CaseIntro({ caseData, onStart }) {
       React.createElement('p', { style: { fontSize: '0.8rem', color: 'var(--text-secondary)' } },
         `Tables: ${caseData.tables.join(', ')}`
       ),
-      React.createElement('button', { className: 'btn btn-submit', onClick: onStart }, 'Start Investigation')
+      React.createElement('div', { className: 'overlay-actions' },
+        React.createElement('button', { type: 'button', className: 'btn btn-secondary', onClick: onBack }, 'Back to Cases'),
+        React.createElement('button', { type: 'button', className: 'btn btn-submit', onClick: onStart }, 'Start Investigation')
+      )
     )
   );
 }
 
-function CaseComplete({ caseData, stats, onContinue, isLast }) {
+function CaseComplete({ caseData, stats, onContinue, onHome, isLast }) {
   return React.createElement('div', { className: 'overlay-screen' },
     React.createElement('div', { className: 'overlay-card fade-in' },
       React.createElement('div', { className: 'case-num' }, `Case ${caseData.id} Complete`),
@@ -501,8 +527,11 @@ function CaseComplete({ caseData, stats, onContinue, isLast }) {
         )
       ),
       React.createElement('p', { className: 'narrative' }, caseData.closing),
-      React.createElement('button', { className: 'btn btn-next', onClick: onContinue },
-        isLast ? 'See Final Results' : 'Next Case'
+      React.createElement('div', { className: 'overlay-actions' },
+        React.createElement('button', { type: 'button', className: 'btn btn-secondary', onClick: onHome }, 'Back to Cases'),
+        React.createElement('button', { type: 'button', className: 'btn btn-next', onClick: onContinue },
+          isLast ? 'See Final Results' : 'Next Case'
+        )
       )
     )
   );
@@ -549,13 +578,16 @@ function CaseSelect({ progress, onSelectCase, onReset }) {
   );
 }
 
-function GameComplete({ progress, onReset }) {
+function GameComplete({ progress, onReset, onHome }) {
   return React.createElement('div', { className: 'game-complete' },
     React.createElement('h1', null, 'Case Closed'),
     React.createElement('div', { className: 'final-rank' }, getRank(progress.totalXP)),
     React.createElement('div', { className: 'final-xp' }, `${progress.totalXP} XP`),
     React.createElement('p', null, window.CASES[6].closing),
-    React.createElement('button', { className: 'btn btn-submit', onClick: onReset, style: { marginTop: '1rem' } }, 'Play Again')
+    React.createElement('div', { className: 'overlay-actions' },
+      React.createElement('button', { type: 'button', className: 'btn btn-secondary', onClick: onHome }, 'Back to Cases'),
+      React.createElement('button', { type: 'button', className: 'btn btn-submit', onClick: onReset }, 'Play Again')
+    )
   );
 }
 
@@ -588,6 +620,12 @@ function App() {
       textareaRef.current.focus();
     }
   }, [activeQuestionIdx, view]);
+
+  useEffect(() => {
+    if (view !== 'playing' && showSchema) {
+      setShowSchema(false);
+    }
+  }, [showSchema, view]);
 
   useEffect(() => {
     if (loading || didBootstrapRef.current) return;
@@ -629,6 +667,14 @@ function App() {
 
   function handleStartCase() {
     setView('playing');
+  }
+
+  function handleGoHome() {
+    setShowSchema(false);
+    setResult(null);
+    setFeedback(null);
+    setSqlText('');
+    setView('select');
   }
 
   function handleRun() {
@@ -845,13 +891,14 @@ function App() {
   if (view === 'game-complete') {
     return React.createElement(GameComplete, {
       progress,
-      onReset: () => { resetProgress(); setView('select'); }
+      onReset: () => { resetProgress(); setView('select'); },
+      onHome: handleGoHome
     });
   }
 
   if (view === 'intro') {
     return React.createElement(React.Fragment, null,
-      React.createElement(CaseIntro, { caseData: currentCase, onStart: handleStartCase })
+      React.createElement(CaseIntro, { caseData: currentCase, onStart: handleStartCase, onBack: handleGoHome })
     );
   }
 
@@ -860,13 +907,19 @@ function App() {
       caseData: currentCase,
       stats: getCaseStats(),
       onContinue: handleCaseComplete,
+      onHome: handleGoHome,
       isLast: activeCaseIdx >= window.CASES.length - 1
     });
   }
 
   // Playing view
   return React.createElement('div', { id: 'game' },
-    React.createElement(TopBar, { caseData: currentCase, progress }),
+    React.createElement(TopBar, {
+      caseData: currentCase,
+      progress,
+      onHome: handleGoHome,
+      onToggleSchema: () => setShowSchema(prev => !prev)
+    }),
     React.createElement('div', { className: 'main-layout' },
       // Left panel
       React.createElement('div', { className: 'left-panel' },
@@ -929,11 +982,6 @@ function App() {
         )
       )
     ),
-    // Schema toggle
-    React.createElement('button', {
-      className: 'schema-toggle-btn',
-      onClick: () => setShowSchema(true)
-    }, 'Schema'),
     showSchema && React.createElement(SchemaPanel, { onClose: () => setShowSchema(false) })
   );
 }
