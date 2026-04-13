@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls /c/Users/shubh/Downloads/sakila/*.csv)",
+      "Bash(mysql --version)",
+      "Bash(sqlite3 --version)",
+      "Bash(npm --version)",
+      "Bash(where node:*)",
+      "Bash(where npm:*)",
+      "Bash(npm -v)",
+      "Bash(cmd.exe /c \"where node\")",
+      "Bash(cmd.exe /c \"node -v\")",
+      "Bash(cmd.exe /c \"where mysql\")",
+      "mcp__Claude_Preview__preview_start"
+    ]
+  }
+}
