@@ -327,7 +327,7 @@ function TopBar({ caseData, progress, onHome }) {
         type: 'button',
         className: 'btn btn-secondary btn-cases',
         onClick: onHome
-      }, 'Cases'),
+      }, 'Home'),
       React.createElement('div', { className: 'top-bar-copy' },
         caseData && React.createElement(React.Fragment, null,
           React.createElement('h1', { className: 'top-bar-title' }, `Case ${caseData.id}: ${caseData.title}`),
