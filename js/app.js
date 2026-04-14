@@ -496,7 +496,7 @@ function CaseIntro({ caseData, onStart, onBack }) {
         `Tables: ${caseData.tables.join(', ')}`
       ),
       React.createElement('div', { className: 'overlay-actions' },
-        React.createElement('button', { type: 'button', className: 'btn btn-secondary', onClick: onBack }, 'Back to Cases'),
+        React.createElement('button', { type: 'button', className: 'btn btn-secondary', onClick: onBack }, 'Back to Home'),
         React.createElement('button', { type: 'button', className: 'btn btn-submit', onClick: onStart }, 'Start Investigation')
       )
     )
@@ -528,7 +528,7 @@ function CaseComplete({ caseData, stats, onContinue, onHome, isLast }) {
       ),
       React.createElement('p', { className: 'narrative' }, caseData.closing),
       React.createElement('div', { className: 'overlay-actions' },
-        React.createElement('button', { type: 'button', className: 'btn btn-secondary', onClick: onHome }, 'Back to Cases'),
+        React.createElement('button', { type: 'button', className: 'btn btn-secondary', onClick: onHome }, 'Back to Home'),
         React.createElement('button', { type: 'button', className: 'btn btn-next', onClick: onContinue },
           isLast ? 'See Final Results' : 'Next Case'
         )
@@ -607,7 +607,7 @@ function GameComplete({ progress, onReset, onHome }) {
     React.createElement('div', { className: 'final-xp' }, `${progress.totalXP} XP`),
     React.createElement('p', null, window.CASES[6].closing),
     React.createElement('div', { className: 'overlay-actions' },
-      React.createElement('button', { type: 'button', className: 'btn btn-secondary', onClick: onHome }, 'Back to Cases'),
+      React.createElement('button', { type: 'button', className: 'btn btn-secondary', onClick: onHome }, 'Back to Home'),
       React.createElement('button', { type: 'button', className: 'btn btn-submit', onClick: onReset }, 'Play Again')
     )
   );
