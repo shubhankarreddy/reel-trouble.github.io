@@ -49,10 +49,10 @@
     },
     "1-7": {
       columns: ["customer_id", "first_name", "last_name", "email"],
-      rows: [
-        [24, "Jules", "Kim", null],
-        [58, "Marta", "Lopez", null]
-      ]
+      rows: [],
+      note: "This sample is intentionally empty. Sakila has no customers with a missing email address.",
+      narrative: "\"If we can't email them, we can't reach them. Check whether anyone has a missing email address.\"",
+      task: "Find customers whose email is missing. If nobody is missing an email, return an empty result with these columns."
     },
     "1-8": {
       columns: ["customer_id", "first_name", "last_name", "create_date"],
@@ -299,6 +299,7 @@
   }
 
   function buildSampleCard(sample, key) {
+    const rows = Array.isArray(sample.rows) ? sample.rows : [];
     const card = document.createElement("div");
     card.className = "sample-output-card sample-output-card--pilot";
     card.dataset.sampleKey = key;
@@ -335,7 +336,7 @@
     thead.appendChild(headRow);
 
     const tbody = document.createElement("tbody");
-    sample.rows.forEach((row) => {
+    rows.forEach((row) => {
       const bodyRow = document.createElement("tr");
       row.forEach((value) => {
         bodyRow.appendChild(buildCell("td", value));
@@ -351,6 +352,14 @@
     card.appendChild(note);
     card.appendChild(wrap);
 
+    if (rows.length === 0) {
+      const emptyState = document.createElement("p");
+      emptyState.className = "sample-output-note";
+      emptyState.style.padding = "0 0.8rem 0.8rem";
+      emptyState.textContent = "No rows match this condition in the Sakila data set.";
+      card.appendChild(emptyState);
+    }
+
     return card;
   }
 
@@ -365,6 +374,7 @@
     if (existingNativeCard) return;
 
     const existingPilotCard = questionCard.querySelector(".sample-output-card--pilot");
+    const memoText = questionCard.querySelector(".memo-card p");
     const taskText = questionCard.querySelector(".task-text");
     const key = getQuestionKey();
     const sample = key ? SAMPLE_OUTPUTS[key] : null;
@@ -372,6 +382,14 @@
     if (!taskText || !sample) {
       existingPilotCard?.remove();
       return;
+    }
+
+    if (memoText && typeof sample.narrative === "string") {
+      memoText.textContent = sample.narrative;
+    }
+
+    if (typeof sample.task === "string") {
+      taskText.textContent = sample.task;
     }
 
     if (existingPilotCard?.dataset.sampleKey === key) {

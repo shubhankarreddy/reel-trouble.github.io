@@ -22,6 +22,51 @@
 
   let modulePromise = null;
 
+  function patchDatabaseExec(SQL) {
+    if (!SQL?.Database?.prototype || SQL.Database.prototype.__reelTroubleExecPatched) {
+      return SQL;
+    }
+
+    const originalExec = SQL.Database.prototype.exec;
+    SQL.Database.prototype.exec = function patchedExec(sql, params, config) {
+      const results = originalExec.call(this, sql, params, config);
+      if (!Array.isArray(results) || results.length > 0 || typeof sql !== "string") {
+        return results;
+      }
+
+      const normalizedSql = sql.trim().replace(/^\uFEFF/, "");
+      if (!/^(select|with)\b/i.test(normalizedSql)) {
+        return results;
+      }
+
+      let statement = null;
+      try {
+        statement = this.prepare(normalizedSql, params);
+        const columns = typeof statement.getColumnNames === "function"
+          ? statement.getColumnNames()
+          : [];
+        const values = [];
+
+        while (statement.step()) {
+          values.push(statement.get());
+        }
+
+        if (columns.length > 0) {
+          return [{ columns, values }];
+        }
+      } catch (error) {
+        console.warn("SQL.js empty-result patch failed.", error);
+      } finally {
+        statement?.free?.();
+      }
+
+      return results;
+    };
+
+    SQL.Database.prototype.__reelTroubleExecPatched = true;
+    return SQL;
+  }
+
   function isRealInitSqlJs(fn) {
     return typeof fn === "function" && fn[PROXY_MARKER] !== true;
   }
@@ -79,10 +124,10 @@
           throw new Error("SQL.js script loaded but initSqlJs is unavailable.");
         }
 
-        return await window.initSqlJs({
+        return patchDatabaseExec(await window.initSqlJs({
           ...(config || {}),
           locateFile: (config && config.locateFile) || ((file) => `${candidate.base}${file}`)
-        });
+        }));
       } catch (error) {
         lastError = error;
         console.warn("SQL.js WASM bootstrap failed.", candidate.script, error);
@@ -102,7 +147,7 @@
           throw new Error("SQL.js asm.js script loaded but initSqlJs is unavailable.");
         }
 
-        return await window.initSqlJs();
+        return patchDatabaseExec(await window.initSqlJs());
       } catch (error) {
         lastError = error;
         console.warn("SQL.js asm.js bootstrap failed.", scriptUrl, error);
