@@ -1119,8 +1119,8 @@ const CASES = [
         expected_columns: ["first_name", "month", "revenue"],
         match_type: "exact",
         hints: [
-          "GROUP BY staff and month (strftime), ORDER BY month.",
-          "SELECT s.first_name, strftime('%Y-%m', p.payment_date) AS month, SUM(p.amount) AS revenue FROM payment p JOIN staff s ON ... GROUP BY s.staff_id, s.first_name, month ORDER BY month"
+          "GROUP BY staff and month (strftime), ORDER BY month, then staff first_name.",
+          "SELECT s.first_name, strftime('%Y-%m', p.payment_date) AS month, SUM(p.amount) AS revenue FROM payment p JOIN staff s ON ... GROUP BY s.staff_id, s.first_name, month ORDER BY month, s.first_name"
         ]
       },
       {
@@ -1213,12 +1213,12 @@ const CASES = [
         title: "Month Over Month",
         narrative: "\"Show me the month-over-month revenue change for each staff member. Are they trending up or down?\"",
         task: "Month-over-month revenue change per staff member.",
-        sql: `with monthly as (select s.staff_id, s.first_name, strftime('%Y-%m', p.payment_date) as month, sum(p.amount) as revenue from payment p join staff s on p.staff_id = s.staff_id group by s.staff_id, s.first_name, month) select first_name, month, revenue, lag(revenue) over (partition by staff_id order by month) as prev_month, round(revenue - lag(revenue) over (partition by staff_id order by month), 2) as revenue_change from monthly`,
+        sql: `with monthly as (select s.staff_id, s.first_name, strftime('%Y-%m', p.payment_date) as month, sum(p.amount) as revenue from payment p join staff s on p.staff_id = s.staff_id group by s.staff_id, s.first_name, month) select first_name, month, revenue, lag(revenue) over (partition by staff_id order by month) as prev_month, round(revenue - lag(revenue) over (partition by staff_id order by month), 2) as revenue_change from monthly order by first_name, month`,
         expected_columns: ["first_name", "month", "revenue", "prev_month", "revenue_change"],
         match_type: "exact",
         hints: [
-          "Use a CTE for monthly revenue per staff, then LAG() window function for the previous month.",
-          "WITH monthly AS (SELECT ..., strftime('%Y-%m', ...) AS month, SUM(...) AS revenue FROM ... GROUP BY ...) SELECT ..., LAG(revenue) OVER (PARTITION BY staff_id ORDER BY month) AS prev_month, revenue - LAG(...) ... AS revenue_change FROM monthly"
+          "Use a CTE for monthly revenue per staff, then LAG() window function for the previous month. ORDER BY first_name, month.",
+          "WITH monthly AS (SELECT ..., strftime('%Y-%m', ...) AS month, SUM(...) AS revenue FROM ... GROUP BY ...) SELECT ..., LAG(revenue) OVER (PARTITION BY staff_id ORDER BY month) AS prev_month, revenue - LAG(...) ... AS revenue_change FROM monthly ORDER BY first_name, month"
         ]
       },
       {
