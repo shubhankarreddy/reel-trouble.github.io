@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Reel Trouble — SQL Detective Game</title>
   <link rel="stylesheet" href="css/style.css">
-  <!-- SQL.js (SQLite in WebAssembly) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"></script>
+  <!-- SQL.js is loaded through a small proxy so both the legacy and newer app bundles can fall back cleanly. -->
   <!-- React 18 (production) -->
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -16,7 +15,9 @@
   <!-- Game data -->
   <script src="js/schema.js"></script>
   <script src="js/questions.js"></script>
+  <script src="js/sql-loader.js"></script>
   <!-- Game app -->
   <script src="js/app.js"></script>
+  <script src="js/runtime-fixes.js"></script>
 </body>
 </html>
