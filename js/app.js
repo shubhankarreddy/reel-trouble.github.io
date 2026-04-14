@@ -379,6 +379,10 @@ function QuestionCard({ question, caseId, isCompleted, isSkipped, hintsUsed, onU
       React.createElement('p', null, question.narrative)
     ),
     React.createElement('p', { className: 'task-text' }, question.task),
+    question.mysql_note && React.createElement('div', { className: 'mysql-note' },
+      React.createElement('span', { className: 'mysql-note-badge' }, 'MySQL \u2192 SQLite'),
+      React.createElement('p', null, question.mysql_note)
+    ),
     React.createElement('div', { className: 'hints-section' },
       question.hints.map((hint, i) =>
         React.createElement('div', { key: i },

@@ -200,6 +200,22 @@ body {
   font-size: 0.95rem; font-weight: 600; color: var(--text-primary); line-height: 1.5;
 }
 
+/* ── MySQL → SQLite note ── */
+.mysql-note {
+  background: #eff6ff; border: 1px solid #bfdbfe;
+  border-left: 3px solid #3b82f6; border-radius: var(--radius);
+  padding: 0.6rem 0.8rem; margin-top: 0.1rem;
+}
+.mysql-note-badge {
+  display: inline-block; background: #3b82f6; color: #fff;
+  font-size: 0.63rem; font-weight: 700; padding: 0.1rem 0.45rem;
+  border-radius: 999px; text-transform: uppercase; letter-spacing: 0.5px;
+  margin-bottom: 0.35rem; font-family: var(--font-mono);
+}
+.mysql-note p {
+  margin: 0; font-size: 0.8rem; color: #1e3a5f; line-height: 1.55;
+}
+
 /* ── Hints ── */
 .hints-section { display: flex; flex-direction: column; gap: 0.5rem; }
 .hint-btn {

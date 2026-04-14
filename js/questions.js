@@ -176,6 +176,7 @@ const CASES = [
         sql: `select customer_id, first_name, last_name, create_date from customer where strftime('%Y', create_date) = '2006'`,
         expected_columns: ["customer_id", "first_name", "last_name", "create_date"],
         match_type: "order_insensitive",
+        mysql_note: "In MySQL you'd write YEAR(create_date) = 2006. SQLite doesn't have YEAR() — use strftime('%Y', column) instead. It returns text, so compare with quotes: strftime('%Y', create_date) = '2006'.",
         hints: [
           "Use strftime('%Y', create_date) to extract the year from a date.",
           "SELECT ... FROM customer WHERE strftime('%Y', create_date) = '2006'"
@@ -328,6 +329,7 @@ const CASES = [
         sql: `select strftime('%Y-%m', payment_date) as month, sum(amount) as total_revenue from payment group by month order by total_revenue desc limit 1`,
         expected_columns: ["month", "total_revenue"],
         match_type: "exact",
+        mysql_note: "In MySQL you'd use DATE_FORMAT(payment_date, '%Y-%m') to group by year-month. SQLite uses strftime('%Y-%m', column) — same format codes, just a different function name.",
         hints: [
           "Use strftime('%Y-%m', payment_date) to extract year-month, then GROUP BY and ORDER BY.",
           "SELECT strftime('%Y-%m', payment_date) AS month, SUM(amount) AS total_revenue FROM payment GROUP BY month ORDER BY total_revenue DESC LIMIT 1"
@@ -786,6 +788,7 @@ const CASES = [
         sql: `select c.customer_id, c.first_name, c.last_name, max(r.rental_date) as last_rental from customer c join rental r on c.customer_id = r.customer_id group by c.customer_id, c.first_name, c.last_name having julianday((select max(rental_date) from rental)) - julianday(max(r.rental_date)) > 180`,
         expected_columns: ["customer_id", "first_name", "last_name", "last_rental"],
         match_type: "order_insensitive",
+        mysql_note: "In MySQL you'd use DATEDIFF(date1, date2) to get days between two dates. SQLite doesn't have DATEDIFF() — use julianday(date1) - julianday(date2) instead. julianday() converts a date to a decimal day number, so subtracting two gives the difference in days.",
         hints: [
           "Use julianday() to calculate the difference in days. 6 months ≈ 180 days.",
           "... HAVING julianday((SELECT MAX(rental_date) FROM rental)) - julianday(MAX(r.rental_date)) > 180"
@@ -1160,6 +1163,7 @@ const CASES = [
         sql: `select s.first_name, case cast(strftime('%w', r.rental_date) as integer) when 0 then 'Sunday' when 1 then 'Monday' when 2 then 'Tuesday' when 3 then 'Wednesday' when 4 then 'Thursday' when 5 then 'Friday' when 6 then 'Saturday' end as day_of_week, count(*) as rental_count from rental r join staff s on r.staff_id = s.staff_id group by s.staff_id, s.first_name, day_of_week order by s.first_name, rental_count desc`,
         expected_columns: ["first_name", "day_of_week", "rental_count"],
         match_type: "order_insensitive",
+        mysql_note: "In MySQL you'd use DAYOFWEEK(date) which returns 1=Sunday … 7=Saturday. SQLite uses strftime('%w', column) which returns 0=Sunday … 6=Saturday as text. Wrap it in CAST(… AS INTEGER) so the CASE WHEN comparison works correctly.",
         hints: [
           "Use strftime('%w', rental_date) to get day of week (0=Sunday), then GROUP BY staff and day.",
           "SELECT s.first_name, CASE CAST(strftime('%w', r.rental_date) AS INTEGER) WHEN 0 THEN 'Sunday' ... END AS day_of_week, COUNT(*) AS rental_count FROM rental r JOIN staff s ON ... GROUP BY s.staff_id, s.first_name, day_of_week"
@@ -1202,6 +1206,7 @@ const CASES = [
         sql: `select payment_id, customer_id, staff_id, amount, payment_date from payment where cast(strftime('%H', payment_date) as integer) < 8 or cast(strftime('%H', payment_date) as integer) >= 22`,
         expected_columns: ["payment_id", "customer_id", "staff_id", "amount", "payment_date"],
         match_type: "order_insensitive",
+        mysql_note: "In MySQL you'd use HOUR(payment_date) to get the hour (0–23). SQLite uses strftime('%H', column) which returns the hour as zero-padded text ('08', '22'). Wrap it in CAST(… AS INTEGER) before comparing with numbers.",
         hints: [
           "Use strftime('%H', payment_date) to extract the hour, then filter.",
           "SELECT ... FROM payment WHERE CAST(strftime('%H', payment_date) AS INTEGER) < 8 OR CAST(strftime('%H', payment_date) AS INTEGER) >= 22"
