@@ -125,6 +125,7 @@ body {
 /* ── Main Layout ── */
 .main-layout {
   display: flex; flex: 1; overflow: hidden;
+  min-height: 0;
 }
 
 /* ── Left Panel ── */
@@ -245,11 +246,14 @@ body {
 /* ── Right Panel ── */
 .right-panel {
   flex: 1; display: flex; flex-direction: column; overflow: hidden;
+  min-width: 0;
+  min-height: 0;
 }
 
 /* ── SQL Editor ── */
 .editor-section {
   display: flex; flex-direction: column; flex: 1; overflow: hidden;
+  min-height: 0;
 }
 .editor-toolbar {
   display: flex; align-items: center; justify-content: space-between;
@@ -320,8 +324,11 @@ body {
 }
 
 .sql-editor-wrapper {
-  flex: 1; min-height: 120px; max-height: 40%;
+  flex: 0 0 42%;
+  min-height: 180px;
+  max-height: 42%;
   position: relative;
+  min-width: 0;
 }
 .sql-textarea {
   width: 100%; height: 100%;
@@ -335,7 +342,8 @@ body {
 /* ── Results Table ── */
 .results-section {
   flex: 1; overflow: auto; border-top: 1px solid #334155;
-  min-height: 100px;
+  min-height: 0;
+  background: var(--surface);
 }
 .results-header {
   display: flex; align-items: center; justify-content: space-between;
@@ -343,7 +351,7 @@ body {
   border-bottom: 1px solid var(--border); flex-shrink: 0;
 }
 .results-header span { font-size: 0.78rem; color: var(--text-secondary); font-weight: 500; }
-.results-table-wrap { overflow: auto; flex: 1; }
+.results-table-wrap { overflow: auto; flex: 1; min-height: 0; }
 .results-table {
   width: 100%; border-collapse: collapse; font-size: 0.8rem;
 }
@@ -544,7 +552,6 @@ body {
   max-width: 500px; margin: 1.5rem 0; font-size: 0.95rem;
   color: var(--text-secondary); line-height: 1.8; font-style: italic;
 }
-
 /* ── Scrollbar ── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -597,7 +604,7 @@ body {
     z-index: 50;
     grid-template-columns: 1fr;
     gap: 0.7rem;
-    padding: calc(0.65rem + env(safe-area-inset-top, 0px)) 0.9rem 0.8rem;
+    padding: calc(0.65rem + env(safe-area-nset-top, 0px)) 0.9rem 0.8rem;
   }
 
   .main-layout {
@@ -711,6 +718,7 @@ body {
   }
 
   .sql-editor-wrapper {
+    flex: 0 0 auto;
     min-height: 180px;
     max-height: none;
   }
