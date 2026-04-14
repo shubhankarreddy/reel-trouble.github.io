@@ -107,6 +107,94 @@
         [12, "43 Elm St", 2],
         [41, "900 Harbor Ave", 3]
       ]
+    },
+    "2-1": {
+      columns: ["total_revenue"],
+      rows: [[67406.56]]
+    },
+    "2-2": {
+      columns: ["total_payments"],
+      rows: [[16044]]
+    },
+    "2-3": {
+      columns: ["avg_payment"],
+      rows: [[4.2]]
+    },
+    "2-4": {
+      columns: ["max_payment"],
+      rows: [[11.99]]
+    },
+    "2-5": {
+      columns: ["staff_id", "first_name", "last_name", "total_revenue"],
+      rows: [
+        [1, "Mike", "Hillyer", 33690.12],
+        [2, "Jon", "Stephens", 33716.44]
+      ]
+    },
+    "2-6": {
+      columns: ["store_id", "total_revenue"],
+      rows: [
+        [1, 33690.12],
+        [2, 33716.44]
+      ]
+    },
+    "2-7": {
+      columns: ["store_id", "rental_count"],
+      rows: [
+        [1, 7998],
+        [2, 8046]
+      ]
+    },
+    "2-8": {
+      columns: ["month", "total_revenue"],
+      rows: [["2005-07", 11752.44]]
+    },
+    "2-9": {
+      columns: ["day", "daily_revenue"],
+      rows: [
+        ["2005-07-01", 312.45],
+        ["2005-07-02", 401.2],
+        ["2005-07-03", 389.75]
+      ]
+    },
+    "2-10": {
+      columns: ["month", "store_id", "revenue"],
+      rows: [
+        ["2005-05", 1, 4820.5],
+        ["2005-05", 2, 4954.75],
+        ["2005-06", 1, 5411.3]
+      ]
+    },
+    "2-11": {
+      columns: ["store_id", "avg_per_rental"],
+      rows: [
+        [1, 4.21],
+        [2, 4.19]
+      ]
+    },
+    "2-12": {
+      columns: ["payment_id", "customer_id", "amount"],
+      rows: [
+        [18, 5, 8.99],
+        [42, 17, 7.99],
+        [58, 21, 10.99]
+      ]
+    },
+    "2-13": {
+      columns: ["month", "monthly_revenue", "cumulative_revenue"],
+      rows: [
+        ["2005-05", 9634.25, 9634.25],
+        ["2005-06", 10877.1, 20511.35],
+        ["2005-07", 11752.44, 32263.79]
+      ]
+    },
+    "2-14": {
+      columns: ["month", "total_revenue", "revenue_rank"],
+      rows: [
+        ["2005-07", 11752.44, 1],
+        ["2005-06", 10877.1, 2],
+        ["2005-08", 10122.83, 3]
+      ]
     }
   };
 
