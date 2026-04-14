@@ -15,6 +15,7 @@ const RANKS = [
 ];
 
 const STORAGE_KEY = "reel_trouble_save";
+const MOBILE_BREAKPOINT = 820;
 
 function getRank(xp) {
   let rank = RANKS[0].name;
@@ -314,42 +315,37 @@ function LoadingScreen({ progress }) {
   );
 }
 
-function TopBar({ caseData, progress, onHome, onToggleSchema }) {
+function TopBar({ caseData, progress, onHome }) {
   const rank = getRank(progress.totalXP);
   const nextRankXP = getNextRankXP(progress.totalXP);
   const prevRankXP = RANKS.reduce((acc, r) => progress.totalXP >= r.threshold ? r.threshold : acc, 0);
   const pct = nextRankXP > prevRankXP ? ((progress.totalXP - prevRankXP) / (nextRankXP - prevRankXP)) * 100 : 100;
 
   return React.createElement('div', { className: 'top-bar' },
-    React.createElement('div', { className: 'top-bar-head' },
+    React.createElement('div', { className: 'top-bar-left' },
+      React.createElement('button', {
+        type: 'button',
+        className: 'btn btn-secondary btn-cases',
+        onClick: onHome
+      }, 'Cases'),
       React.createElement('div', { className: 'top-bar-copy' },
-        React.createElement('div', { className: 'top-bar-breadcrumb' },
-          React.createElement('button', {
-            type: 'button',
-            className: 'breadcrumb-home',
-            onClick: onHome
-          }, 'Home'),
-          caseData && React.createElement('span', { className: 'breadcrumb-separator' }, '/'),
-          caseData && React.createElement('span', { className: 'breadcrumb-current' }, `Case ${caseData.id}`)
+        caseData && React.createElement(React.Fragment, null,
+          React.createElement('h1', { className: 'top-bar-title' }, `Case ${caseData.id}: ${caseData.title}`),
+          React.createElement('p', { className: 'top-bar-subtitle' }, caseData.subtitle)
         )
-      ),
+      )
+    ),
+    React.createElement('div', { className: 'top-bar-status' },
       React.createElement('div', { className: 'top-bar-badges' },
         React.createElement('span', { className: 'rank-badge' }, rank),
         progress.streak >= 3 && React.createElement('span', { className: 'streak-badge' }, `${progress.streak} streak`)
+      ),
+      React.createElement('div', { className: 'top-bar-progress' },
+        React.createElement('span', { className: 'xp-text' }, `${progress.totalXP} XP`),
+        React.createElement('div', { className: 'xp-bar-track' },
+          React.createElement('div', { className: 'xp-bar-fill', style: { width: `${Math.min(pct, 100)}%` } })
+        )
       )
-    ),
-    React.createElement('div', { className: 'top-bar-progress' },
-      React.createElement('span', { className: 'xp-text' }, `${progress.totalXP} XP`),
-      React.createElement('div', { className: 'xp-bar-track' },
-        React.createElement('div', { className: 'xp-bar-fill', style: { width: `${Math.min(pct, 100)}%` } })
-      )
-    ),
-    React.createElement('div', { className: 'top-bar-actions' },
-      React.createElement('button', {
-        type: 'button',
-        className: 'btn btn-top-bar',
-        onClick: onToggleSchema
-      }, 'Schema')
     )
   );
 }
@@ -606,8 +602,11 @@ function App() {
   const [hintsUsed, setHintsUsed] = useState(0);
   const [attempts, setAttempts] = useState(0);
   const [showSchema, setShowSchema] = useState(false);
+  const [isEditorFocused, setIsEditorFocused] = useState(false);
+  const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const textareaRef = useRef(null);
   const didBootstrapRef = useRef(false);
+  const restingViewportHeightRef = useRef(0);
 
   const currentCase = window.CASES[activeCaseIdx];
   const currentQuestion = currentCase?.questions[activeQuestionIdx];
@@ -616,7 +615,11 @@ function App() {
 
   // Focus textarea when question changes
   useEffect(() => {
-    if (view === 'playing' && textareaRef.current) {
+    if (
+      view === 'playing' &&
+      textareaRef.current &&
+      !window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`).matches
+    ) {
       textareaRef.current.focus();
     }
   }, [activeQuestionIdx, view]);
@@ -626,6 +629,66 @@ function App() {
       setShowSchema(false);
     }
   }, [showSchema, view]);
+
+  useEffect(() => {
+    if (view === 'playing') return;
+    setIsEditorFocused(false);
+    setIsKeyboardOpen(false);
+  }, [view]);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const visualViewport = window.visualViewport;
+
+    const syncViewport = () => {
+      const viewportHeight = Math.round(visualViewport?.height || window.innerHeight);
+      const viewportOffsetTop = Math.round(visualViewport?.offsetTop || 0);
+      const isMobile = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT}px)`).matches;
+      if (!isEditorFocused || view !== 'playing' || !isMobile) {
+        restingViewportHeightRef.current = viewportHeight;
+      }
+
+      const restingViewportHeight = restingViewportHeightRef.current || viewportHeight;
+      const keyboardLikelyOpen =
+        view === 'playing' &&
+        isMobile &&
+        isEditorFocused &&
+        ((restingViewportHeight - viewportHeight) > 120 || viewportOffsetTop > 0);
+
+      root.style.setProperty('--app-height', `${viewportHeight}px`);
+      setIsKeyboardOpen(prev => prev === keyboardLikelyOpen ? prev : keyboardLikelyOpen);
+    };
+
+    syncViewport();
+    window.addEventListener('resize', syncViewport);
+    if (visualViewport) {
+      visualViewport.addEventListener('resize', syncViewport);
+      visualViewport.addEventListener('scroll', syncViewport);
+    }
+
+    return () => {
+      window.removeEventListener('resize', syncViewport);
+      if (visualViewport) {
+        visualViewport.removeEventListener('resize', syncViewport);
+        visualViewport.removeEventListener('scroll', syncViewport);
+      }
+    };
+  }, [isEditorFocused, view]);
+
+  useEffect(() => {
+    if (!isEditorFocused || !textareaRef.current) return;
+
+    const textarea = textareaRef.current;
+    const keepEditorVisible = () => {
+      window.requestAnimationFrame(() => {
+        textarea.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      });
+    };
+
+    keepEditorVisible();
+    const timeoutId = window.setTimeout(keepEditorVisible, 180);
+    return () => window.clearTimeout(timeoutId);
+  }, [activeQuestionIdx, isEditorFocused]);
 
   useEffect(() => {
     if (loading || didBootstrapRef.current) return;
@@ -913,12 +976,16 @@ function App() {
   }
 
   // Playing view
-  return React.createElement('div', { id: 'game' },
+  const gameClasses = [
+    isEditorFocused ? 'editor-focused' : '',
+    isKeyboardOpen ? 'keyboard-active' : ''
+  ].filter(Boolean).join(' ');
+
+  return React.createElement('div', { id: 'game', className: gameClasses || undefined },
     React.createElement(TopBar, {
       caseData: currentCase,
       progress,
-      onHome: handleGoHome,
-      onToggleSchema: () => setShowSchema(prev => !prev)
+      onHome: handleGoHome
     }),
     React.createElement('div', { className: 'main-layout' },
       // Left panel
@@ -946,6 +1013,10 @@ function App() {
           React.createElement('div', { className: 'editor-toolbar' },
             React.createElement('div', { className: 'editor-toolbar-left' }, 'SQL Editor \u00B7 Ctrl+Enter to run'),
             React.createElement('div', { className: 'editor-toolbar-right' },
+              React.createElement('button', {
+                className: 'btn btn-secondary btn-schema',
+                onClick: () => setShowSchema(prev => !prev)
+              }, 'Schema'),
               React.createElement('button', { className: 'btn btn-skip', onClick: handleSkip }, 'Skip'),
               React.createElement('button', { className: 'btn btn-run', onClick: handleRun }, '\u25B6 Run'),
               !isQuestionCompleted
@@ -966,6 +1037,11 @@ function App() {
               className: 'sql-textarea',
               value: sqlText,
               onChange: e => setSqlText(e.target.value),
+              onFocus: () => setIsEditorFocused(true),
+              onBlur: () => {
+                setIsEditorFocused(false);
+                window.setTimeout(() => setIsKeyboardOpen(false), 150);
+              },
               onKeyDown: handleKeyDown,
               placeholder: 'Write your SQL query here...',
               spellCheck: false
