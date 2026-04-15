@@ -470,14 +470,250 @@ function ResultsTable({ result }) {
   );
 }
 
-function SchemaPanel({ onClose }) {
+// ── ER Diagram Modal ──
+const SAKILA_ERD = `erDiagram
+    actor {
+        int actor_id PK
+        text first_name
+        text last_name
+    }
+    language {
+        int language_id PK
+        text name
+    }
+    film {
+        int film_id PK
+        text title
+        int release_year
+        int language_id FK
+        real rental_rate
+        int length
+        text rating
+    }
+    category {
+        int category_id PK
+        text name
+    }
+    film_actor {
+        int actor_id FK
+        int film_id FK
+    }
+    film_category {
+        int film_id FK
+        int category_id FK
+    }
+    country {
+        int country_id PK
+        text country
+    }
+    city {
+        int city_id PK
+        text city
+        int country_id FK
+    }
+    address {
+        int address_id PK
+        text address
+        text district
+        int city_id FK
+    }
+    store {
+        int store_id PK
+        int manager_staff_id FK
+        int address_id FK
+    }
+    staff {
+        int staff_id PK
+        text first_name
+        text last_name
+        int store_id FK
+        int address_id FK
+    }
+    customer {
+        int customer_id PK
+        text first_name
+        text last_name
+        text email
+        int store_id FK
+        int address_id FK
+        int active
+    }
+    inventory {
+        int inventory_id PK
+        int film_id FK
+        int store_id FK
+    }
+    rental {
+        int rental_id PK
+        text rental_date
+        text return_date
+        int inventory_id FK
+        int customer_id FK
+        int staff_id FK
+    }
+    payment {
+        int payment_id PK
+        int customer_id FK
+        int staff_id FK
+        int rental_id FK
+        real amount
+        text payment_date
+    }
+
+    actor ||--o{ film_actor : "acts in"
+    film ||--o{ film_actor : "features"
+    film ||--o{ film_category : "tagged"
+    category ||--o{ film_category : "tags"
+    language ||--o{ film : "spoken in"
+    film ||--o{ inventory : "stocked as"
+    store ||--o{ inventory : "holds"
+    inventory ||--o{ rental : "rented via"
+    customer ||--o{ rental : "makes"
+    staff ||--o{ rental : "processes"
+    rental ||--o{ payment : "triggers"
+    customer ||--o{ payment : "pays"
+    staff ||--o{ payment : "collects"
+    address ||--o{ customer : "home"
+    address ||--o{ staff : "workplace"
+    address ||--o{ store : "location"
+    store ||--o{ customer : "registered at"
+    store ||--o{ staff : "employs"
+    store }|--|| staff : "managed by"
+    city ||--o{ address : "contains"
+    country ||--o{ city : "contains"
+`;
+
+function ERDiagramModal({ onClose }) {
+  const containerRef = useRef(null);
+  const [renderError, setRenderError] = useState(null);
+  const [zoom, setZoom] = useState(1);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    if (typeof window.mermaid === 'undefined') {
+      setRenderError('Mermaid library not loaded. Check your internet connection.');
+      return;
+    }
+
+    window.mermaid.initialize({
+      startOnLoad: false,
+      theme: document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default',
+      er: { diagramPadding: 20, layoutDirection: 'TB', minEntityWidth: 100, fontSize: 12 },
+      securityLevel: 'loose'
+    });
+
+    const id = 'sakila-erd-' + Date.now();
+    window.mermaid.render(id, SAKILA_ERD)
+      .then(({ svg }) => {
+        if (containerRef.current) {
+          containerRef.current.innerHTML = svg;
+          const svgEl = containerRef.current.querySelector('svg');
+          if (svgEl) {
+            svgEl.style.width = '100%';
+            svgEl.style.height = 'auto';
+            svgEl.style.maxWidth = '100%';
+          }
+        }
+      })
+      .catch(err => {
+        setRenderError('Diagram render failed: ' + err.message);
+      });
+  }, []);
+
+  const handleKeyDown = useCallback((e) => {
+    if (e.key === 'Escape') onClose();
+  }, [onClose]);
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
+
+  return React.createElement('div', {
+    className: 'erd-overlay',
+    onClick: onClose
+  },
+    React.createElement('div', {
+      className: 'erd-modal',
+      onClick: e => e.stopPropagation()
+    },
+      React.createElement('div', { className: 'erd-header' },
+        React.createElement('div', { className: 'erd-header-left' },
+          React.createElement('h2', null, 'Sakila Database Schema'),
+          React.createElement('span', { className: 'erd-subtitle' }, '15 tables · click diagram to pan · scroll to zoom')
+        ),
+        React.createElement('div', { className: 'erd-header-right' },
+          React.createElement('button', {
+            type: 'button',
+            className: 'erd-zoom-btn',
+            onClick: () => setZoom(z => Math.max(0.4, +(z - 0.15).toFixed(2))),
+            title: 'Zoom out'
+          }, '−'),
+          React.createElement('span', { className: 'erd-zoom-label' }, Math.round(zoom * 100) + '%'),
+          React.createElement('button', {
+            type: 'button',
+            className: 'erd-zoom-btn',
+            onClick: () => setZoom(z => Math.min(3, +(z + 0.15).toFixed(2))),
+            title: 'Zoom in'
+          }, '+'),
+          React.createElement('button', {
+            type: 'button',
+            className: 'erd-zoom-btn',
+            onClick: () => setZoom(1),
+            title: 'Reset zoom'
+          }, '⟳'),
+          React.createElement('button', {
+            type: 'button',
+            className: 'erd-close-btn',
+            onClick: onClose
+          }, '✕')
+        )
+      ),
+      React.createElement('div', { className: 'erd-scroll-wrap' },
+        renderError
+          ? React.createElement('div', { className: 'erd-error' }, renderError)
+          : React.createElement('div', {
+              className: 'erd-diagram-wrap',
+              style: { transform: `scale(${zoom})`, transformOrigin: 'top center' }
+            },
+              React.createElement('div', { ref: containerRef, className: 'erd-container' })
+            )
+      ),
+      React.createElement('div', { className: 'erd-legend' },
+        React.createElement('span', { className: 'erd-legend-item' },
+          React.createElement('span', { className: 'erd-legend-pk' }, 'PK'),
+          ' Primary Key'
+        ),
+        React.createElement('span', { className: 'erd-legend-item' },
+          React.createElement('span', { className: 'erd-legend-fk' }, 'FK'),
+          ' Foreign Key'
+        ),
+        React.createElement('span', { className: 'erd-legend-item erd-legend-rel' },
+          '||—o{ One-to-Many'
+        ),
+        React.createElement('span', { className: 'erd-legend-item erd-legend-rel' },
+          '}|—|| Many-to-One'
+        )
+      )
+    )
+  );
+}
+
+function SchemaPanel({ onClose, onShowERD }) {
   const [expanded, setExpanded] = useState({});
   const toggle = (name) => setExpanded(prev => ({ ...prev, [name]: !prev[name] }));
 
   return React.createElement('div', { className: 'schema-overlay', onClick: onClose },
     React.createElement('div', { className: 'schema-panel', onClick: e => e.stopPropagation() },
       React.createElement('div', { className: 'schema-header' },
-        React.createElement('h2', null, 'Schema Reference'),
+        React.createElement('div', { className: 'schema-header-left' },
+          React.createElement('h2', null, 'Schema Reference'),
+          React.createElement('button', {
+            type: 'button',
+            className: 'btn-erd-link',
+            onClick: (e) => { e.stopPropagation(); onShowERD && onShowERD(); }
+          }, '\uD83D\uDD17 View ER Diagram')
+        ),
         React.createElement('button', {
           type: 'button',
           className: 'schema-close-btn',
@@ -560,7 +796,7 @@ function CaseComplete({ caseData, stats, onContinue, onHome, isLast }) {
   );
 }
 
-function CaseSelect({ progress, onSelectCase, onReset, darkMode, onToggleDark }) {
+function CaseSelect({ progress, onSelectCase, onReset, darkMode, onToggleDark, onShowERD }) {
   return React.createElement('div', { className: 'case-select-screen' },
     React.createElement('h1', null, 'Reel Trouble'),
     React.createElement('p', { className: 'tagline' }, 'SQL mysteries at Sakila Video'),
@@ -598,6 +834,17 @@ function CaseSelect({ progress, onSelectCase, onReset, darkMode, onToggleDark })
         title: darkMode ? 'Switch to light mode' : 'Switch to dark mode',
         style: { width: '36px', padding: '0.38rem 0', justifyContent: 'center', flexShrink: 0 }
       }, darkMode ? '\u2600\uFE0F' : '\uD83C\uDF19')
+    ),
+    React.createElement('button', {
+      type: 'button',
+      className: 'btn-schema-diagram',
+      onClick: onShowERD
+    },
+      React.createElement('span', { className: 'btn-schema-diagram-icon' }, '\uD83D\uDDC2\uFE0F'),
+      React.createElement('span', null,
+        React.createElement('strong', null, 'Sakila Schema Diagram'),
+        React.createElement('span', { className: 'btn-schema-diagram-sub' }, 'See how all 15 tables connect · ER diagram')
+      )
     ),
     React.createElement('div', { className: 'case-grid' },
       window.CASES.map((c, i) => {
@@ -659,6 +906,7 @@ function App() {
   const [hintsUsed, setHintsUsed] = useState(0);
   const [attempts, setAttempts] = useState(0);
   const [showSchema, setShowSchema] = useState(false);
+  const [showERD, setShowERD] = useState(false);
   const [isEditorFocused, setIsEditorFocused] = useState(false);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const textareaRef = useRef(null);
@@ -791,6 +1039,7 @@ function App() {
 
   function handleGoHome() {
     setShowSchema(false);
+    setShowERD(false);
     setResult(null);
     setFeedback(null);
     setSqlText('');
@@ -1001,13 +1250,17 @@ function App() {
   );
 
   if (view === 'select') {
-    return React.createElement(CaseSelect, {
-      progress,
-      onSelectCase: handleSelectCase,
-      onReset: () => { resetProgress(); setView('select'); },
-      darkMode,
-      onToggleDark: toggleDarkMode
-    });
+    return React.createElement(React.Fragment, null,
+      React.createElement(CaseSelect, {
+        progress,
+        onSelectCase: handleSelectCase,
+        onReset: () => { resetProgress(); setView('select'); },
+        darkMode,
+        onToggleDark: toggleDarkMode,
+        onShowERD: () => setShowERD(true)
+      }),
+      showERD && React.createElement(ERDiagramModal, { onClose: () => setShowERD(false) })
+    );
   }
 
   if (view === 'game-complete') {
@@ -1119,7 +1372,11 @@ function App() {
         )
       )
     ),
-    showSchema && React.createElement(SchemaPanel, { onClose: () => setShowSchema(false) })
+    showSchema && React.createElement(SchemaPanel, {
+      onClose: () => setShowSchema(false),
+      onShowERD: () => { setShowSchema(false); setShowERD(true); }
+    }),
+    showERD && React.createElement(ERDiagramModal, { onClose: () => setShowERD(false) })
   );
 }
 
