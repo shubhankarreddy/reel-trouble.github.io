@@ -1,3 +1,10 @@
 /.chrome-mobile-check/
 /.claude/
 /.cleanup-archive*/
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
